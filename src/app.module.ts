@@ -5,6 +5,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SharedModule } from './shared/shared.module';
 import { all_entities } from './entities';
+import { ClientsModule } from './clients/clients.module';
+import { MembershipModule } from './membership/membership.module';
+import { UsersModule } from './users/users.module';
+import { CommonModule } from './common/common.module';
 
 @Module({
   imports: [
@@ -26,7 +30,11 @@ import { all_entities } from './entities';
       }),
       inject: [ConfigService],
     }),
-    SharedModule,],
+    SharedModule,
+    ClientsModule,
+    MembershipModule,
+    UsersModule,
+    CommonModule,],
   controllers: [AppController],
   providers: [AppService],
 })
