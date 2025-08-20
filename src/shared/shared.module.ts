@@ -8,10 +8,10 @@ import { UnitController } from './unit/unit.controller';
 import { UnitService } from './unit/unit.service';
 import { PaginationService } from './pagination/pagination.service';
 import { shared_module_entities } from '../entities';
-import { GenderController } from './gender.controller';
-import { GenderService } from './gender.service';
-import { BloodTypeController } from './blood-type.controller';
-import { BloodTypeService } from './blood-type.service';
+import { GenderController } from './gender/gender.controller';
+import { GenderService } from './gender/gender.service';
+import { BloodTypeController } from './blood-type/blood-type.controller';
+import { BloodTypeService } from './blood-type/blood-type.service';
 
 @Module({
   imports: [
