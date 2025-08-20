@@ -3,7 +3,7 @@ import { Gender } from '../../shared/gender/gender.entity';
 import { BloodType } from '../../shared/blood-type/blood-type.entity';
 import { SuscriptionEntity } from '../suscription/suscription.entity';
 import { ClientObservation } from '../client-observation/observation.entity';
-import { ClientGoal } from '../client-goal.entity';
+import { ClientGoal } from '../client-goal/client-goal.entity';
 
 @Entity('clients')
 export class Client extends BaseEntity {
