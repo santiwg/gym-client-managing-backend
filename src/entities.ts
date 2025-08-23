@@ -12,8 +12,8 @@ import { Client } from './clients/client/client.entity';
 import { Attendance } from './clients/attendance/attendance.entity';
 import { ClientObservation } from './clients/client-observation/observation.entity';
 import { FeeCollection } from './clients/fee-collection/fee-collection.entity';
-import { SuscriptionEntity } from './clients/suscription/suscription.entity';
-export const clients_module_entities = [Client,Attendance, ClientObservation, FeeCollection, SuscriptionEntity];
+import { SubscriptionEntity } from './clients/subscription/subscription.entity';
+export const clients_module_entities = [Client,Attendance, ClientObservation, FeeCollection, SubscriptionEntity];
 
 // MEMBERSHIP MODULE
 import { Membership } from './membership/membership/membership.entity';

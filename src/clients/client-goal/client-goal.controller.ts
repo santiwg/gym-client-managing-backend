@@ -13,7 +13,7 @@ export class ClientGoalController {
   }
 
   @Post()
-  async create(@Body() dto: ClientGoalDto): Promise<ClientGoal> {
-    return this.clientGoalService.create(dto);
+  async create(@Body() clientGoalData: ClientGoalDto): Promise<ClientGoal> {
+    return this.clientGoalService.create(clientGoalData);
   }
 }

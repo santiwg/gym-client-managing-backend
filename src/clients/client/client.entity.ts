@@ -1,9 +1,10 @@
-import { BaseEntity, Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, OneToOne, JoinColumn } from "typeorm";
+import { BaseEntity, Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, OneToOne, JoinColumn, DeleteDateColumn } from "typeorm";
 import { Gender } from '../../shared/gender/gender.entity';
 import { BloodType } from '../../shared/blood-type/blood-type.entity';
-import { SuscriptionEntity } from '../suscription/suscription.entity';
+import { SubscriptionEntity } from '../subscription/subscription.entity';
 import { ClientObservation } from '../client-observation/observation.entity';
 import { ClientGoal } from '../client-goal/client-goal.entity';
+import { Exclude } from "class-transformer";
 
 @Entity('clients')
 export class Client extends BaseEntity {
@@ -35,12 +36,16 @@ export class Client extends BaseEntity {
 	@Column({ type: 'date', default: () => 'CURRENT_DATE' })
 	registrationDate: Date;
 
-	@OneToMany(() => SuscriptionEntity, suscription => suscription.client)
-	suscriptions: SuscriptionEntity[];
+	@OneToMany(() => SubscriptionEntity, subscription => subscription.client,{cascade:true})
+	subscriptions: SubscriptionEntity[];
 
-	@OneToMany(() => ClientObservation, observation => observation.client)
+	@OneToMany(() => ClientObservation, observation => observation.client,{cascade:true})
 	observations: ClientObservation[];
 
 	@ManyToOne(() => ClientGoal, clientGoal => clientGoal.clients,{nullable:true})
 	clientGoal: ClientGoal;
+	
+	@Exclude()
+    @DeleteDateColumn()
+    deletedAt?: Date;
 }

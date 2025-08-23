@@ -1,5 +1,6 @@
-import { BaseEntity, Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { BaseEntity, Column, DeleteDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Client } from '../client/client.entity';
+import { Exclude } from "class-transformer";
 
 @Entity('client-observations')
 export class ClientObservation extends BaseEntity {
@@ -17,4 +18,8 @@ export class ClientObservation extends BaseEntity {
 
 	@ManyToOne(() => Client, client => client.observations)
 	client: Client;
+
+	@Exclude()
+	@DeleteDateColumn()
+	deletedAt?: Date;
 }

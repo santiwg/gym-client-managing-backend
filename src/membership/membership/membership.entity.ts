@@ -1,6 +1,7 @@
-import { BaseEntity, Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { BaseEntity, Column, DeleteDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { DecimalTransformer } from '../../shared/transformers/decimal.transformer';
-import { SuscriptionEntity } from '../../clients/suscription/suscription.entity';
+import { SubscriptionEntity } from '../../clients/subscription/subscription.entity';
+import { Exclude } from "class-transformer";
 
 @Entity('memberships')
 export class Membership extends BaseEntity {
@@ -19,6 +20,10 @@ export class Membership extends BaseEntity {
 	@Column({ type: 'int' })
 	weeklyAttendanceLimit: number;
 
-	@OneToMany(() => SuscriptionEntity, suscription => suscription.membership)
-	suscriptions: SuscriptionEntity[];
+	@OneToMany(() => SubscriptionEntity, subscription => subscription.membership)
+	subscriptions: SubscriptionEntity[];
+
+	@Exclude()
+	@DeleteDateColumn()
+	deletedAt?: Date;
 }
