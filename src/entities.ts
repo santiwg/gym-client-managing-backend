@@ -2,9 +2,9 @@
 //mas limpiamente en los modulos
 
 // AUTH MODULE
-import { User } from './auth/user/user.entity';
-import { Role } from './auth/role/role.entity';
-import { Permission } from './auth/permission/permission.entity';
+import { User } from './auth/entities/user.entity';
+import { Role } from './auth/entities/role.entity';
+import { Permission } from './auth/entities/permission.entity';
 export const auth_module_entities = [User, Role, Permission];
 
 // CLIENTS MODULE
@@ -13,7 +13,8 @@ import { Attendance } from './clients/attendance/attendance.entity';
 import { ClientObservation } from './clients/client-observation/observation.entity';
 import { FeeCollection } from './clients/fee-collection/fee-collection.entity';
 import { Subscription } from './clients/subscription/subscription.entity';
-export const clients_module_entities = [Client,Attendance, ClientObservation, FeeCollection, Subscription];
+import { ClientGoal } from './clients/client-goal/client-goal.entity';
+export const clients_module_entities = [Client,Attendance, ClientObservation, FeeCollection, Subscription,ClientGoal];
 
 // MEMBERSHIP MODULE
 import { Membership } from './membership/membership/membership.entity';
@@ -24,6 +25,7 @@ import { BloodType } from './shared/blood-type/blood-type.entity';
 import { Gender } from './shared/gender/gender.entity';
 //import { PaymentMethod } from './shared/payment-method/payment-method.entity';
 import { State } from './shared/state/state.entity';
+
 //import { Unit } from './shared/unit/unit.entity';
 export const shared_module_entities = [BloodType, Gender, State, ]; //for now we don't use payment-method nor unit
 

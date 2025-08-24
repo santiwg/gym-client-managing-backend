@@ -15,8 +15,5 @@ export class SubscriptionDto {
   @Min(1)
   membershipId: number;
 
-  @IsNotEmpty()
-  @IsNumber()
-  @Min(1)
-  clientId: number;
+  //clientId se pasa en la ruta
 }

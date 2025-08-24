@@ -3,10 +3,11 @@ import { Repository } from 'typeorm';
 import { Membership } from './membership.entity';
 import { MembershipDto } from './dtos/membership.dto';
 import { NotFoundError } from 'rxjs';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class MembershipService {
-    constructor(private readonly membershipRepository: Repository<Membership>) { }
+    constructor(@InjectRepository(Membership) private readonly membershipRepository: Repository<Membership>) { }
 
     async findAll(): Promise<Membership[]> {
         return this.membershipRepository.find();

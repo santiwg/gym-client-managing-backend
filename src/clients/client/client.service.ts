@@ -18,6 +18,7 @@ export class ClientService {
 	constructor(
 		@InjectRepository(Client)
 		private readonly clientRepository: Repository<Client>,
+		@InjectRepository(ClientObservation)
 		private readonly clientObservationRepository: Repository<ClientObservation>,
 		private readonly clientGoalService: ClientGoalService,
 		private readonly genderService: GenderService,

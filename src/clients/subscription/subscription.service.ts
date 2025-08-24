@@ -5,14 +5,19 @@ import { Subscription } from './subscription.entity';
 import { SubscriptionDto } from './dtos/subscription.dto';
 import { StateService } from 'src/shared/state/state.service';
 import { MembershipService } from 'src/membership/membership/membership.service';
+import { forwardRef, Inject } from '@nestjs/common';
 import { FeeCollectionService } from '../fee-collection/fee-collection.service';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class SubscriptionService {
-    constructor(private readonly subscriptionRepository: Repository<Subscription>,
+    constructor(
+        @InjectRepository(Subscription)
+        private readonly subscriptionRepository: Repository<Subscription>,
         private readonly clientService: ClientService,
         private readonly membershipService: MembershipService,
         private readonly stateService: StateService,
+        @Inject(forwardRef(() => FeeCollectionService))
         private readonly feeCollectionService: FeeCollectionService
     ) {}
     async getClientCurrentSubscription(clientDocumentNumber?: string,clientId?: number): Promise<Subscription | null> {
@@ -43,8 +48,8 @@ export class SubscriptionService {
         const subscription = await this.findById(subscriptionId);
         return subscription.membership.monthlyPrice; //esto podria hacerlo el service de membership para mejor acoplamiento
     }
-    async create(dto: SubscriptionDto): Promise<Subscription> {
-        const {clientId,membershipId, ...subscriptionData} = dto;
+    async create(dto: SubscriptionDto, clientId: number): Promise<Subscription> {
+        const { membershipId, ...subscriptionData } = dto;
         const client = await this.clientService.findById(clientId);
         const membership = await this.membershipService.findById(membershipId);
         const state = await this.stateService.findActiveState();
@@ -56,18 +61,19 @@ export class SubscriptionService {
         });
         return this.subscriptionRepository.save(subscription);
     }
-    async makeClientSubscriptionInactive(clientId: number): Promise<Subscription> {
+    async makeClientSubscriptionInactive(clientId: number): Promise<{message: string}> {
         const subscription = await this.getClientCurrentSubscription(undefined,clientId);
         if (!subscription) {
             throw new NotFoundException(`Subscription for client with id ${clientId} not found`);
         }
         subscription.state = await this.stateService.findInactiveState();
-        return this.subscriptionRepository.save(subscription);
+        await this.subscriptionRepository.save(subscription);
+        return {message: 'Subscription deactivated successfully'};
     }
     async makeSubscriptionInactive(subscriptionId: number): Promise<Subscription> {
         const subscription = await this.findById(subscriptionId);
         subscription.state = await this.stateService.findInactiveState();
-        return this.subscriptionRepository.save(subscription);
+        return await this.subscriptionRepository.save(subscription);
     }
 
     async makeSubscriptionActive(subscriptionId: number): Promise<Subscription> {

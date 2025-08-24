@@ -1,11 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BloodType } from './blood-type.entity';
 import { NotFoundError } from 'rxjs';
 
 @Injectable()
 export class BloodTypeService {
-    constructor (private readonly bloodTypeRepository: Repository<BloodType>) {}
+    constructor (
+        @InjectRepository(BloodType)
+        private readonly bloodTypeRepository: Repository<BloodType>
+    ) {}
     
     async findAll(): Promise<BloodType[]> {
         return this.bloodTypeRepository.find();

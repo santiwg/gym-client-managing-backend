@@ -21,7 +21,7 @@ import { AuthModule } from './auth/auth.module';
       useFactory: (configService: ConfigService) => ({
         type: configService.get<string>('DATABASE_TYPE') as 'postgres',
         url: configService.get<string>('DATABASE_URL'),
-        autoLoadEntities: configService.get('DATABASE_AUTO_LOAD_ENTITIES') === 'true',
+        entities: all_entities,
         synchronize: configService.get('DATABASE_SYNCHRONIZE') === 'true',
       }),
       inject: [ConfigService],

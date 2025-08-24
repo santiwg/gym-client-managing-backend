@@ -1,10 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { State } from './state.entity';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class StateService {
-	constructor (private readonly stateRepository: Repository<State>) {}
+	constructor (
+        @InjectRepository(State)
+        private readonly stateRepository: Repository<State>
+    ) {}
 	async findAll(): Promise<State[]> {
 		return this.stateRepository.find();
 	}

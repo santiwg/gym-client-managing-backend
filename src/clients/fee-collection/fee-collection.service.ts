@@ -1,13 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { SubscriptionService } from '../subscription/subscription.service';
 import { Repository } from 'typeorm';
 import { FeeCollection } from './fee-collection.entity';
 import { FeeCollectionDto } from './dtos/fee-collection.dto';
+import { NotFoundError } from 'rxjs';
 
 @Injectable()
 export class FeeCollectionService {
-    constructor(private readonly subscriptionService: SubscriptionService,
-                private readonly feeCollectionRepository: Repository<FeeCollection>
+    constructor(
+        @Inject(forwardRef(() => SubscriptionService))
+        private readonly subscriptionService: SubscriptionService,
+        @InjectRepository(FeeCollection)
+        private readonly feeCollectionRepository: Repository<FeeCollection>
     ) {}
 
     async validateUpToDatePayment(subscriptionId: number,): Promise<boolean> {
@@ -26,11 +31,13 @@ export class FeeCollectionService {
         return now < paymentDueDate;
     }
     async create(dto: FeeCollectionDto): Promise<FeeCollection> {
-       const {subscriptionId, ...feeCollectionData} = dto;
-       const subscription = await this.subscriptionService.findById(subscriptionId);
+       const {clientDocumentNumber, ...feeCollectionData} = dto;
+       const subscription = await this.subscriptionService.getClientCurrentSubscription(clientDocumentNumber);
+
+       if (!subscription) throw new NotFoundException('No active subscription found');
 
        //asigno el monto historico, es decir el que tiene la membresia al momento del pago
-       const historicalUnitAmount = await this.subscriptionService.getHistoricalUnitAmount(subscriptionId);
+       const historicalUnitAmount = await this.subscriptionService.getHistoricalUnitAmount(subscription.id);
 
        const feeCollection = this.feeCollectionRepository.create({
            subscription,

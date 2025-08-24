@@ -16,5 +16,5 @@ export class FeeCollectionDto {
   @IsNumber()
   @IsNotEmpty()
   @Min(1)
-  subscriptionId: number;
+  clientDocumentNumber: string;
 }

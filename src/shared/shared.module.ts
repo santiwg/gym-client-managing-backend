@@ -2,10 +2,6 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { StateController } from './state/state.controller';
 import { StateService } from './state/state.service';
-import { PaymentMethodController } from './payment-method/payment-method.controller';
-import { PaymentMethodService } from './payment-method/payment-method.service';
-import { UnitController } from './unit/unit.controller';
-import { UnitService } from './unit/unit.service';
 import { PaginationService } from './pagination/pagination.service';
 import { shared_module_entities } from '../entities';
 import { GenderController } from './gender/gender.controller';
@@ -17,8 +13,8 @@ import { BloodTypeService } from './blood-type/blood-type.service';
   imports: [
     TypeOrmModule.forFeature(shared_module_entities)
   ],
-  controllers: [StateController, PaymentMethodController, UnitController, GenderController, BloodTypeController],
-  providers: [StateService, PaymentMethodService, UnitService, PaginationService, GenderService, BloodTypeService],
-  exports: [UnitService, StateService, PaymentMethodService, PaginationService]
+  controllers: [StateController, GenderController, BloodTypeController],
+  providers: [StateService, GenderService, BloodTypeService, PaginationService],
+  exports: [StateService, GenderService, BloodTypeService, PaginationService]
 })
 export class SharedModule {}
