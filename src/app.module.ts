@@ -19,14 +19,10 @@ import { AuthModule } from './auth/auth.module';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
-    type: configService.get<string>('DATABASE_TYPE') as 'postgres',
-    host: configService.get<string>('DB_HOST'),
-    port: Number(configService.get<string>('DB_PORT') ?? 5432),
-    username: configService.get<string>('DB_USERNAME'),
-    password: configService.get<string>('DB_PASSWORD'),
-    database: configService.get<string>('DB_NAME'),
-    entities: all_entities, //LLENAR ESE ARRAY
-    synchronize: true,
+        type: configService.get<string>('DATABASE_TYPE') as 'postgres',
+        url: configService.get<string>('DATABASE_URL'),
+        autoLoadEntities: configService.get('DATABASE_AUTO_LOAD_ENTITIES') === 'true',
+        synchronize: configService.get('DATABASE_SYNCHRONIZE') === 'true',
       }),
       inject: [ConfigService],
     }),
@@ -38,4 +34,4 @@ import { AuthModule } from './auth/auth.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

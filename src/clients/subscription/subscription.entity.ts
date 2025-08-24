@@ -7,7 +7,7 @@ import { Client } from "../client/client.entity";
 import { Exclude } from "class-transformer";
 
 @Entity('subscriptions')
-export class SubscriptionEntity extends BaseEntity {
+export class Subscription extends BaseEntity {
 	@PrimaryGeneratedColumn()
 	id: number;
 

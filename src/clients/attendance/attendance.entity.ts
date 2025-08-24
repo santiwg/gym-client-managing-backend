@@ -1,5 +1,5 @@
 import { BaseEntity, Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { SubscriptionEntity } from '../subscription/subscription.entity';
+import { Subscription } from '../subscription/subscription.entity';
 
 @Entity('attendances')
 export class Attendance extends BaseEntity {
@@ -9,6 +9,6 @@ export class Attendance extends BaseEntity {
     @Column({ type: 'timestamp' , default: () => 'CURRENT_TIMESTAMP' })
     dateTime: Date;
 
-    @ManyToOne(() => SubscriptionEntity, subscription => subscription.attendances)
-    subscription: SubscriptionEntity;
+    @ManyToOne(() => Subscription, subscription => subscription.attendances)
+    subscription: Subscription;
 }

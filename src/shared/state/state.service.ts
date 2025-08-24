@@ -27,6 +27,15 @@ export class StateService {
 	isInactive(state: State): boolean {
 		return state.name.toLowerCase() === 'inactive';
 	}
+	async findActiveState(): Promise<State> {
+		return this.findByName('Active');
+	}
+	async findInactiveState(): Promise<State> {
+		return this.findByName('Inactive');
+	}
+	async findSuspendedState(): Promise<State> {
+		return this.findByName('Suspended');
+	}
 	async create(data: Partial<State>): Promise<State> {
 		const state = this.stateRepository.create(data);
 		return this.stateRepository.save(state);

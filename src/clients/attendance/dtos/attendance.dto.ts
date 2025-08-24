@@ -1,4 +1,10 @@
+import { IsNotEmpty, IsString } from "class-validator";
+
 export class AttendanceDto {
   dateTime?: Date;
-  suscriptionId: number;
+
+  //con el client obtengo la suscripción
+  @IsString()
+  @IsNotEmpty()
+  clientDocumentNumber: string;
 }

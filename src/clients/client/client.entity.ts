@@ -1,7 +1,7 @@
 import { BaseEntity, Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, OneToOne, JoinColumn, DeleteDateColumn } from "typeorm";
 import { Gender } from '../../shared/gender/gender.entity';
 import { BloodType } from '../../shared/blood-type/blood-type.entity';
-import { SubscriptionEntity } from '../subscription/subscription.entity';
+import { Subscription } from '../subscription/subscription.entity';
 import { ClientObservation } from '../client-observation/observation.entity';
 import { ClientGoal } from '../client-goal/client-goal.entity';
 import { Exclude } from "class-transformer";
@@ -36,8 +36,8 @@ export class Client extends BaseEntity {
 	@Column({ type: 'date', default: () => 'CURRENT_DATE' })
 	registrationDate: Date;
 
-	@OneToMany(() => SubscriptionEntity, subscription => subscription.client,{cascade:true})
-	subscriptions: SubscriptionEntity[];
+	@OneToMany(() => Subscription, subscription => subscription.client,{cascade:true})
+	subscriptions: Subscription[];
 
 	@OneToMany(() => ClientObservation, observation => observation.client,{cascade:true})
 	observations: ClientObservation[];

@@ -1,6 +1,6 @@
 import { BaseEntity, Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { DecimalTransformer } from '../../shared/transformers/decimal.transformer';
-import { SubscriptionEntity } from '../subscription/subscription.entity';
+import { Subscription } from '../subscription/subscription.entity';
 
 @Entity('fee-collections')
 export class FeeCollection extends BaseEntity {
@@ -16,6 +16,6 @@ export class FeeCollection extends BaseEntity {
 	@Column({ type: 'int' })
 	paidMonths: number; //amount of months paid
 
-	@ManyToOne(() => SubscriptionEntity, subscription => subscription.feeCollections)
-	subscription: SubscriptionEntity;
+	@ManyToOne(() => Subscription, subscription => subscription.feeCollections)
+	subscription: Subscription;
 }

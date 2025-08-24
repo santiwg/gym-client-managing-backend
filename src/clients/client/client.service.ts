@@ -98,14 +98,7 @@ export class ClientService {
 		}));
 		return partialObservations;
 	}
-	async getClientCurrentSubscription(clientDocumentNumber: string) {
-		const client = await this.findByDocumentNumber(clientDocumentNumber);
-		const subscriptions = client.subscriptions;
-		if (!subscriptions || subscriptions.length === 0) return null;
-		subscriptions.sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
-		// La más nueva estará en la posición 0
-		return subscriptions[0];
-	}
+	
 	async delete(id: number): Promise<{ message: string; }> {
         const client = await this.findById(id);
         await this.clientRepository.softRemove(client);
