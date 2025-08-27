@@ -6,5 +6,5 @@ export class ClientGoalDto {
   name: string;
   
   @IsString()
-  description?: string;
+  description?: string|null;
 }
