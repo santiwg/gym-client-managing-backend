@@ -20,6 +20,9 @@ export class Client extends BaseEntity {
 	@ManyToOne(() => Gender, gender => gender.clients)
 	gender: Gender;
 
+	@Column({ type: 'date'})
+	birthDate: Date;
+
 	@ManyToOne(() => BloodType, bloodType => bloodType.clients)
 	bloodType: BloodType;
 

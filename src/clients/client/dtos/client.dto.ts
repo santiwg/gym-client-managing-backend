@@ -41,7 +41,11 @@ export class ClientDto {
   address?: string;
 
   
-    
+  @IsDate()
+  @IsNotFutureDate()
+  @IsNotEmpty()
+  birthDate: Date;
+
   @IsDate()
   @IsNotFutureDate()
   @IsOptional()

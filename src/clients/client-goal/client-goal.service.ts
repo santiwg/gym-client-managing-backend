@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ClientGoal } from './client-goal.entity';
@@ -22,7 +22,7 @@ export class ClientGoalService {
   async findById(id: number): Promise<ClientGoal> {
     const clientGoal = await this.clientGoalRepository.findOne({where: {id}});
     if (!clientGoal) {
-      throw new Error('ClientGoal not found');
+      throw new NotFoundException('ClientGoal not found');
     }
     return clientGoal;
   }

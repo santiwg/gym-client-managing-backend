@@ -4,7 +4,6 @@ import { Repository, Between } from 'typeorm';
 import { Attendance } from './attendance.entity';
 import { AttendanceDto } from './dtos/attendance.dto';
 import { AttendanceRegistrationErrorResponse, AttendanceRegistrationSuccessResponse } from './dtos/attendanceRegistrationResponse.interface';
-import { ClientService } from '../client/client.service';
 import { SubscriptionService } from '../subscription/subscription.service';
 import { Subscription } from '../subscription/subscription.entity';
 
@@ -26,7 +25,7 @@ export class AttendanceService {
 		if (!this.subscriptionService.isActive(subscription)) {
 			return { success: false, message: 'Inactive subscription' };
 		}
-		if (!await this.validateCurrentWeekAttendanceLimitIsExceeded(subscription)) {
+		if (await this.validateCurrentWeekAttendanceLimitIsExceeded(subscription)) {
 			return { success: false, message: 'Attendance limit exceeded' };
 		}
 		const attendance = this.attendanceRepository.create({
