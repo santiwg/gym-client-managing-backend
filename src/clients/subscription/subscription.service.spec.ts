@@ -269,6 +269,14 @@ describe('SubscriptionService', () => {
           expect(stateServiceMock.findInactiveState).not.toHaveBeenCalled();
           expect(repositoryMock.save).not.toHaveBeenCalled();
         });
+        it('throws when findInactiveState throws', async () => {
+          const sub = { ...baseSubscription } as Subscription;
+          service.getClientCurrentSubscription = jest.fn().mockResolvedValue(sub);
+          stateServiceMock.findInactiveState.mockRejectedValue(new NotFoundException('state not found'));
+
+          await expect(service.makeClientSubscriptionInactive(99)).rejects.toThrow(NotFoundException);
+          expect(repositoryMock.save).not.toHaveBeenCalled();
+        });
         it('propagates repository error on save', async () => {
           const sub = { ...baseSubscription } as Subscription;
           service.getClientCurrentSubscription = jest.fn().mockResolvedValue(sub);

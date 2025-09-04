@@ -30,22 +30,7 @@ export class ClientService {
 		return this.clientRepository.find();
 	}
 	async findAllPaginated(pagination:PaginationDto):Promise<PaginatedResponseDto<Client>> {
-		/* 
-		const options = this.paginationService.getPaginationOptions(pagination, {
-            order: { name: 'ASC' } // Ordena por nombre de forma ascendente (A-Z)
-        });
-
-        const [data, total] = await this.repository.findAndCount(options);
-
-        const productsWithCosts: ProductWithCosts[] = [];
-
-        for (const product of data) {
-            const productWithCosts = await this.convertToProductWithCosts(product);
-            productsWithCosts.push(productWithCosts);
-        }
-
-        return this.paginationService.createPaginatedResponse(productsWithCosts, total, pagination);
-		*/ 
+		
 		const options = this.paginationService.getPaginationOptions(pagination, {
             order: { name: 'ASC' } // Ordena por nombre de forma ascendente (A-Z)
         })
@@ -53,7 +38,13 @@ export class ClientService {
 		return this.paginationService.createPaginatedResponse(data, total, pagination);
 	}
 	async findById(id: number): Promise<Client> {
-		const client = await this.clientRepository.findOne({ where: { id } });
+		const client = await this.clientRepository.findOne({ where: { id },	relations: [
+				'subscriptions',
+				'observations',
+				'clientGoal',
+				'gender',
+				'bloodType'
+			] });
 		if (!client) {
 			throw new NotFoundException('Client not found');
 		}
