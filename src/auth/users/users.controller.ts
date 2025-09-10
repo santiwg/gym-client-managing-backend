@@ -6,6 +6,7 @@ import {
   Post,
   Req,
   UseGuards,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { LoginDTO } from '../interfaces/login.dto';
@@ -54,9 +55,11 @@ export class UsersController {
   @Get('refresh-token')
   @Permissions([])
   refreshToken(@Req() request: Request) {
-    return this.service.refreshToken(
-      request.headers['refresh-token'] as string,
-    );
+    const token = request.headers['refresh-token'] as string | undefined;
+  if (!token) {
+    throw new UnauthorizedException('Refresh token is missing');
+  }
+    return this.service.refreshToken(token);
   }
 
   @UseGuards(AuthGuard)
