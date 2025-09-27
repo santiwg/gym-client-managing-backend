@@ -20,7 +20,7 @@ export class Client extends BaseEntity {
 	@ManyToOne(() => Gender, gender => gender.clients)
 	gender: Gender;
 
-	@Column({ type: 'date'})
+	@Column({ type: 'date' })
 	birthDate: Date;
 
 	@ManyToOne(() => BloodType, bloodType => bloodType.clients)
@@ -35,20 +35,23 @@ export class Client extends BaseEntity {
 	@Column({ nullable: true })
 	phoneNumber: string;
 
-    //podría sacarse porque ya tenemos la fecha en la suscripción
+	@Column({ nullable: true })
+	address: string;
+
+	//podría sacarse porque ya tenemos la fecha en la suscripción
 	@Column({ type: 'date', default: () => 'CURRENT_DATE' })
 	registrationDate: Date;
 
-	@OneToMany(() => Subscription, subscription => subscription.client,{cascade:true})
+	@OneToMany(() => Subscription, subscription => subscription.client, { cascade: true })
 	subscriptions: Subscription[];
 
-	@OneToMany(() => ClientObservation, observation => observation.client,{cascade:true})
+	@OneToMany(() => ClientObservation, observation => observation.client, { cascade: true })
 	observations: ClientObservation[];
 
-	@ManyToOne(() => ClientGoal, clientGoal => clientGoal.clients,{nullable:true})
+	@ManyToOne(() => ClientGoal, clientGoal => clientGoal.clients, { nullable: true })
 	clientGoal: ClientGoal;
-	
+
 	@Exclude()
-    @DeleteDateColumn()
-    deletedAt?: Date;
+	@DeleteDateColumn()
+	deletedAt?: Date;
 }

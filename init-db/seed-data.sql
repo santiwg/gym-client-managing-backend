@@ -44,6 +44,7 @@ INSERT INTO clients (
     "documentNumber", 
     email, 
     "phoneNumber", 
+    address,
     "birthDate", 
     "registrationDate",
     "genderId",
@@ -56,6 +57,7 @@ INSERT INTO clients (
         '12345678', 
         'juan.perez@email.com', 
         '+54 9 11 1234-5678', 
+        'Av. Corrientes 1234, CABA, Buenos Aires',
         '1990-05-15', 
         CURRENT_DATE,
         1, -- Masculino
@@ -68,6 +70,7 @@ INSERT INTO clients (
         '87654321', 
         'maria.gonzalez@email.com', 
         '+54 9 11 8765-4321', 
+        'Calle San Martín 567, Palermo, CABA',
         '1985-08-22', 
         CURRENT_DATE,
         2, -- Femenino
@@ -80,6 +83,7 @@ INSERT INTO clients (
         '11223344', 
         'carlos.rodriguez@email.com', 
         '+54 9 11 1122-3344', 
+        'Av. Santa Fe 2890, Recoleta, CABA',
         '1992-12-03', 
         CURRENT_DATE,
         1, -- Masculino
@@ -92,6 +96,7 @@ INSERT INTO clients (
         '44332211', 
         'ana.martinez@email.com', 
         '+54 9 11 4433-2211', 
+        'Av. Las Heras 1890, Barrio Norte, CABA',
         '1988-03-17', 
         CURRENT_DATE,
         2, -- Femenino

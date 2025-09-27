@@ -40,7 +40,6 @@ export class ClientDto {
   @IsOptional()
   address?: string;
 
-  
   @IsDate()
   @IsNotFutureDate()
   @IsNotEmpty()
@@ -51,7 +50,6 @@ export class ClientDto {
   @IsOptional()
   registrationDate?: Date;
 
-  
   @IsNumber()
   @Min(1)
   @IsOptional()
