@@ -32,7 +32,14 @@ export class ClientService {
 	async findAllPaginated(pagination:PaginationDto):Promise<PaginatedResponseDto<Client>> {
 		
 		const options = this.paginationService.getPaginationOptions(pagination, {
-            order: { name: 'ASC' } // Ordena por nombre de forma ascendente (A-Z)
+            order: { name: 'ASC' }, // Ordena por nombre de forma ascendente (A-Z)
+            relations: [
+                'subscriptions',
+                'observations',
+                'clientGoal',
+                'gender',
+                'bloodType'
+            ]
         })
 		const [data, total] = await this.clientRepository.findAndCount(options);
 		return this.paginationService.createPaginatedResponse(data, total, pagination);
