@@ -1,5 +1,5 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { sign, verify } from 'jsonwebtoken';
+import { sign, verify, SignOptions } from 'jsonwebtoken';
 import * as dayjs from 'dayjs';
 import { Payload } from '../interfaces/payload';
 @Injectable()
@@ -8,20 +8,21 @@ export class JwtService {
   config = {
     auth: {
       secret: 'authSecret',
-      expiresIn: '15m',
+      expiresIn: '15m' as const,
     },
     refresh: {
       secret: 'refreshSecret',
-      expiresIn: '1d',
+      expiresIn: '1d' as const,
     },
   };
   generateToken(
     payload: { email: string },
     type: 'refresh' | 'auth' = 'auth',
   ): string {
-    return sign(payload, this.config[type].secret, {
+    const options: SignOptions = {
       expiresIn: this.config[type].expiresIn,
-    });
+    };
+    return sign(payload, this.config[type].secret, options);
   }
 
   refreshToken(refreshToken: string):{accessToken:string,refreshToken:string} {
@@ -42,6 +43,6 @@ export class JwtService {
   }
 
   getPayload(token: string, type: 'refresh' | 'auth' = 'auth'): Payload {
-    return verify(token, this.config[type].secret);
+    return verify(token, this.config[type].secret) as Payload;
   }
 }
