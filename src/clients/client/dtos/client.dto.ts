@@ -43,11 +43,13 @@ export class ClientDto {
   @IsDate()
   @IsNotFutureDate()
   @IsNotEmpty()
+  @Type(() => Date)
   birthDate: Date;
 
   @IsDate()
   @IsNotFutureDate()
   @IsOptional()
+  @Type(() => Date)
   registrationDate?: Date;
 
   @IsNumber()

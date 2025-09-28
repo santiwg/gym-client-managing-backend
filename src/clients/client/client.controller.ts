@@ -20,8 +20,8 @@ export class ClientController {
 	constructor(private readonly clientService: ClientService,
 		private readonly attendanceService: AttendanceService,
 		private readonly subscriptionService: SubscriptionService,
-		private readonly feeCollectionService: FeeCollectionService	
-	) {}
+		private readonly feeCollectionService: FeeCollectionService
+	) { }
 
 	@Get()
 	async findAllPaginated(@Query() pagination: PaginationDto): Promise<PaginatedResponseDto<Client>> {
@@ -31,14 +31,14 @@ export class ClientController {
 
 	@Post()
 	async create(@Body() dto: ClientDto): Promise<Client> {
-		
 		return this.clientService.create(dto);
 	}
+
 	@Put(':id')
-    async update(@Param('id') id: number, @Body() client: ClientDto): Promise<Client> {
-        return await this.clientService.update(id, client);
-    }
-	
+	async update(@Param('id') id: number, @Body() client: ClientDto): Promise<Client> {
+		return await this.clientService.update(id, client);
+	}
+
 	@Delete(':id')
 	async delete(@Param('id') id: number): Promise<{ message: string }> {
 		return this.clientService.delete(id);

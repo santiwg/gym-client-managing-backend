@@ -1,10 +1,11 @@
-import { 
-    ExceptionFilter, 
-    Catch, 
-    ArgumentsHost, 
-    HttpException, 
+import {
+    ExceptionFilter,
+    Catch,
+    ArgumentsHost,
+    HttpException,
     HttpStatus,
-    Logger
+    Logger,
+    BadRequestException
 } from '@nestjs/common';
 import { Response } from 'express';
 import { QueryFailedError } from 'typeorm';
@@ -14,7 +15,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     private readonly logger = new Logger(GlobalExceptionFilter.name); //ese parametro es la "etiqueta" o "contexto" del logger, cuando el logger registra un mensaje, muestra de dónde viene
 
     catch(exception: unknown, host: ArgumentsHost) {
-        
+
         //obtenemos contexto de la peticion
         const ctx = host.switchToHttp();
         const response = ctx.getResponse<Response>(); //objeto Response de Express que representa la respuesta HTTP que se enviará al cliente.
@@ -27,21 +28,27 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         if (exception instanceof HttpException) {
             status = exception.getStatus();
             const exceptionResponse = exception.getResponse();
-            
-            // Si es string: usa el string directamente
-            // Si es objeto: extrae la propiedad 'message'
-            // Si no hay mensaje: usa mensaje por defecto
-            message = typeof exceptionResponse === 'string' 
-                ? exceptionResponse                           // ← Caso string
-                : (exceptionResponse as any).message          // ← Caso objeto
-                  || message;                                 // ← Fallback por defecto
+
+            // Manejo especial para errores de validación
+            if (exception instanceof BadRequestException) {
+                const response = exception.getResponse() as any;
+                if (response.message && Array.isArray(response.message)) {
+                    message = response.message;
+                } else {
+                    message = response.message || 'Datos de entrada inválidos';
+                }
+            } else {
+                message = typeof exceptionResponse === 'string'
+                    ? exceptionResponse
+                    : (exceptionResponse as any).message || message;
+            }
         }
-        
+
         // Manejo de errores de base de datos (TypeORM)
         else if (exception instanceof QueryFailedError) {
             // Errores específicos de base de datos
             const error = exception as any; //Sin as any TypeScript se queja por que exception no tiene 'code' definido explicitamente, viene del driver
-            
+
             // Error de clave duplicada (datos del cliente)
             if (error.code === '23505') {
                 status = HttpStatus.BAD_REQUEST; // 400

@@ -1,4 +1,5 @@
 import { IsDate, IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { Type } from "class-transformer";
 import { IsNotFutureDate } from "src/shared/validators/is-not-future-date.validator";
 
 export class ClientObservationDto {
@@ -12,7 +13,7 @@ export class ClientObservationDto {
 
   @IsDate()
   @IsNotFutureDate()
-  @IsOptional() 
+  @IsOptional()
+  @Type(() => Date)
   date?: Date;
-  //clientId no, se asigna automaticamente porque las creamos juntas
 }
