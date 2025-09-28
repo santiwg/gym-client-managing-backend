@@ -1,3 +1,8 @@
+// ClientGoalController unit tests
+//
+// What to know:
+// - We mock ClientGoalService to isolate controller logic.
+// - We cover both the happy paths and error propagation from the service.
 import { Test } from '@nestjs/testing';
 import { ClientGoalController } from './client-goal.controller';
 import { ClientGoal } from './client-goal.entity';

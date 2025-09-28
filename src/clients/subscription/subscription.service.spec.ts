@@ -1,3 +1,9 @@
+// SubscriptionService unit tests
+//
+// What to know:
+// - We mock the repository and dependent services (ClientService, MembershipService, StateService, FeeCollectionService).
+// - We cover state transitions (Active/Inactive/Suspended), payment validation, and default startDate on create.
+// - Internal helpers are stubbed where needed to avoid side effects and keep tests focused.
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { NotFoundException } from '@nestjs/common';

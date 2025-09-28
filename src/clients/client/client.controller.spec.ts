@@ -1,3 +1,10 @@
+// ClientController unit tests
+//
+// What to know:
+// - We mock ClientService to isolate controller behavior.
+// - We provide dummy providers for constructor dependencies (AttendanceService, SubscriptionService, FeeCollectionService)
+//   to satisfy DI without executing any real logic.
+// - We only test endpoints that delegate to ClientService.
 import { Test, TestingModule } from '@nestjs/testing';
 import { ClientController } from './client.controller';
 import { ClientService } from './client.service';
@@ -6,7 +13,7 @@ import { FeeCollectionService } from '../fee-collection/fee-collection.service';
 import { SubscriptionService } from '../subscription/subscription.service';
 import { AttendanceService } from '../attendance/attendance.service';
 
-// Mock del ClientService solo para los métodos usados por el controller
+// Mock of ClientService only for controller-used methods
 const clientServiceMock = {
   findAllPaginated: jest.fn(),
   create: jest.fn(),

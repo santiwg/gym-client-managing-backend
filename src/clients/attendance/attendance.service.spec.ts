@@ -1,3 +1,9 @@
+// AttendanceService unit tests
+//
+// What to know:
+// - We keep dates deterministic via fixed Date instances to avoid flakiness.
+// - Interactions with SubscriptionService are mocked to verify activity state and weekly limits.
+// - We cover success paths and multiple failure modes (inactive/no subscription, repo errors).
 import { Test, TestingModule } from '@nestjs/testing';
 import { AttendanceService } from './attendance.service';
 import { getRepositoryToken } from '@nestjs/typeorm';

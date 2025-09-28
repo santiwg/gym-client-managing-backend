@@ -1,3 +1,10 @@
+// UsersService unit tests
+//
+// What to know:
+// - We mock external dependencies (TypeORM repository, JwtService, RolesService) to isolate service logic.
+// - bcrypt is mocked to avoid real hashing and allow predictable assertions (fast + deterministic tests).
+// - We use partial argument matching (e.g., objectContaining) when options may grow to avoid brittle tests.
+// - For error branches, we assert the specific NestJS exceptions thrown and ensure side effects do not occur.
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -9,6 +16,8 @@ import { HttpException, NotFoundException, UnauthorizedException } from '@nestjs
 import { hashSync, compareSync } from 'bcrypt';
 
 // Mock bcrypt to avoid real hashing cost and allow precise assertions
+// - hashSync always returns 'hashed-pass' so we can assert that value is persisted
+// - compareSync is configured per-test to simulate match/mismatch
 jest.mock('bcrypt', () => ({
 	hashSync: jest.fn().mockReturnValue('hashed-pass'),
 	compareSync: jest.fn(),
@@ -66,6 +75,7 @@ describe('UsersService', () => {
 	});
 
 	describe('refreshToken', () => {
+		// Happy path: delegates to JwtService.refreshToken
 		it('returns refreshed token', async () => {
 			jwtServiceMock.refreshToken.mockResolvedValue({ accessToken: 'newAccess', refreshToken: 'newRefresh' });
 			const res = await service.refreshToken('old');
@@ -81,6 +91,7 @@ describe('UsersService', () => {
 	});
 
 	describe('register', () => {
+		// Registration: password is hashed, user is saved, and a simple status is returned
 		it('hashes password and saves user (success)', async () => {
 			const dto: any = { email: 'new@example.com', password: 'plain' };
 			userRepositoryMock.save!.mockImplementation(async (u: any) => ({ ...u, id: 10 }));
@@ -88,13 +99,14 @@ describe('UsersService', () => {
 			const result = await service.register(dto);
 			expect(userRepositoryMock.save).toHaveBeenCalled();
 
-			// mock.calls almacena todas las llamadas al mock y sus argumentos
+			// Jest tip: mock.calls contains all call args for a mock. We read the first call argument (saved user).
 			const savedArg = userRepositoryMock.save!.mock.calls[0][0];
-			expect(hashSync).toHaveBeenCalledWith('plain', 10); // se llamó hashSync con salt rounds 10
-			expect(savedArg.password).toBe('hashed-pass'); // contraseña hasheada mock
-			expect(savedArg.email).toBe(dto.email); // Verifica que el email se guardó correctamente
+			expect(hashSync).toHaveBeenCalledWith('plain', 10); // it called hashSync with salt rounds 10
+			expect(savedArg.password).toBe('hashed-pass'); // mocked hashed password
+			expect(savedArg.email).toBe(dto.email); // verifies the email was saved correctly
 			expect(result).toEqual({ status: 'created' });
 		});
+		// Database failure: service wraps in HttpException(500) with an explanatory message
 		it('throws HttpException when repository.save fails', async () => {
 			const dto: any = { email: 'fail@example.com', password: 'plain' };
 			userRepositoryMock.save!.mockRejectedValue(new Error('db fail'));
@@ -113,6 +125,7 @@ describe('UsersService', () => {
 	});
 
 	describe('login', () => {
+		// Login: spy on findByEmail to isolate credential flow; chain two token returns (access then refresh)
 		it('returns access and refresh tokens for valid credentials', async () => {
 			(compareSync as jest.Mock).mockReturnValue(true);
 			const user = { ...baseUser } as User;
@@ -120,7 +133,7 @@ describe('UsersService', () => {
 			const spy = jest.spyOn(service, 'findByEmail').mockResolvedValue(user);
 			jwtServiceMock.generateToken
 				.mockReturnValueOnce('accessToken')
-				.mockReturnValueOnce('refreshToken'); //Eso encadena dos respuestas distintas para las dos primeras llamadas al mock
+				.mockReturnValueOnce('refreshToken'); //Sets different return values for the first two calls of the mock.
 
 			const res = await service.login({ email: 'john@example.com', password: 'secret' });
 			expect(spy).toHaveBeenCalledWith('john@example.com');
@@ -128,6 +141,7 @@ describe('UsersService', () => {
 			expect(jwtServiceMock.generateToken).toHaveBeenNthCalledWith(2, { email: user.email }, 'refresh');
 			expect(res).toEqual({ accessToken: 'accessToken', refreshToken: 'refreshToken' });
 		});
+		// Password mismatch: compareSync(false) -> UnauthorizedException
 		it('throws UnauthorizedException when password mismatch', async () => {
 			(compareSync as jest.Mock).mockReturnValue(false);
 			const user = { ...baseUser } as User;
@@ -135,6 +149,7 @@ describe('UsersService', () => {
 			await expect(service.login({ email: user.email, password: 'wrong' })).rejects.toThrow(UnauthorizedException);
 			expect(jwtServiceMock.generateToken).not.toHaveBeenCalled();
 		});
+		// User not found: service.findByEmail throws Unauthorized and we propagate it
 		it('propagates UnauthorizedException when user not found', async () => {
 	expect(compareSync).not.toHaveBeenCalled();
 			jest.spyOn(service, 'findByEmail').mockRejectedValue(new UnauthorizedException());

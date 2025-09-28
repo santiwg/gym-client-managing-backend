@@ -1,3 +1,10 @@
+// Test suite for ClientService
+//
+// Guía rápida de este spec:
+// - Mockeamos los repositorios de Client y ClientObservation, y los servicios auxiliares.
+// - Usamos expect.objectContaining para validar parcialmente opciones (evitar tests frágiles).
+// - Aislamos helpers internos con spies o testeándolos en su propio bloque.
+// - Cubrimos errores de repos y servicios para asegurar propagación correcta.
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { NotFoundException } from '@nestjs/common';
@@ -93,10 +100,17 @@ describe('ClientService', () => {
       const data = [{ ...baseClient }];
       paginationServiceMock.getPaginationOptions.mockReturnValue(options);
       clientRepoMock.findAndCount!.mockResolvedValue([data, 1]);
-      paginationServiceMock.createPaginatedResponse.mockReturnValue({ data, hasMore:true });
+      paginationServiceMock.createPaginatedResponse.mockReturnValue({ data, hasMore: true });
 
       const result = await service.findAllPaginated(pagination);
-      expect(paginationServiceMock.getPaginationOptions).toHaveBeenCalledWith(pagination, { order: { name: 'ASC' } });
+      // Validamos parcialmente: order y relations. Si el servicio agrega más opciones, el test no se rompe.
+      expect(paginationServiceMock.getPaginationOptions).toHaveBeenCalledWith(
+        pagination,
+        expect.objectContaining({
+          order: { name: 'ASC' },
+          relations: ['subscriptions', 'observations', 'clientGoal', 'gender', 'bloodType'],
+        })
+      );
       expect(clientRepoMock.findAndCount).toHaveBeenCalledWith(options);
       expect(paginationServiceMock.createPaginatedResponse).toHaveBeenCalledWith(data, 1, pagination);
       expect(result).toEqual({ data, hasMore: true });
@@ -123,12 +137,12 @@ describe('ClientService', () => {
       clientRepoMock.findOne!.mockResolvedValue(client);
       const result = await service.findById(1);
       expect(result).toBe(client);
-  expect(clientRepoMock.findOne).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 1 } }));
+      expect(clientRepoMock.findOne).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 1 } }));
     });
     it('throws NotFoundException when client does not exist', async () => {
       clientRepoMock.findOne!.mockResolvedValue(null);
       await expect(service.findById(999)).rejects.toThrow(NotFoundException);
-  expect(clientRepoMock.findOne).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 999 } }));
+      expect(clientRepoMock.findOne).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 999 } }));
     });
     it('propagates repository errors', async () => {
       clientRepoMock.findOne!.mockRejectedValue(new Error('DB error'));
@@ -150,7 +164,8 @@ describe('ClientService', () => {
     it('throws NotFoundException when client does not exist', async () => {
       clientRepoMock.findOne!.mockResolvedValue(null);
       await expect(service.findByDocumentNumber('x')).rejects.toThrow(NotFoundException);
-      expect(clientRepoMock.findOne).toHaveBeenCalledWith({ where: { documentNumber: 'x' },
+      expect(clientRepoMock.findOne).toHaveBeenCalledWith({
+        where: { documentNumber: 'x' },
         relations: ['subscriptions', 'observations', 'clientGoal', 'gender', 'bloodType'],
       });
     });
@@ -165,25 +180,25 @@ describe('ClientService', () => {
       const dto: any = { name: 'John', genderId: 1, bloodTypeId: 2, clientObservations: [{ summary: 's', comment: 'c' }, { summary: 'a', comment: 'c' }] };
       const gender = { id: 1 } as any;
       const bloodType = { id: 2 } as any;
-  const observations = [{ summary: 's', comment: 'c' }, { summary: 'a', comment: 'c' }];
+      const observations = [{ summary: 's', comment: 'c' }, { summary: 'a', comment: 'c' }];
       genderServiceMock.findById.mockResolvedValue(gender);
       bloodTypeServiceMock.findById.mockResolvedValue(bloodType);
-    // isolate: mock createClientObservations
-  const spyCreateObs = jest.spyOn(service, 'createClientObservations').mockReturnValue(observations as any);
-        
-  // createClientObservations is pure, exercise through service
+      // isolate: mock createClientObservations
+      const spyCreateObs = jest.spyOn(service, 'createClientObservations').mockReturnValue(observations as any);
+
+  // createClientObservations es pura, ejercemos la llamada a través del service
       const created = { ...dto, gender, clientGoal: undefined, observations, bloodType } as any;
       clientRepoMock.create!.mockReturnValue(created);
       clientRepoMock.save!.mockResolvedValue({ ...created, id: 10 });
 
       const result = await service.create(dto);
-  expect(spyCreateObs).toHaveBeenCalledWith(dto.clientObservations);
+      expect(spyCreateObs).toHaveBeenCalledWith(dto.clientObservations);
       expect(genderServiceMock.findById).toHaveBeenCalledWith(dto.genderId);
       expect(bloodTypeServiceMock.findById).toHaveBeenCalledWith(dto.bloodTypeId);
       expect(clientGoalServiceMock.findById).not.toHaveBeenCalled();
-  // repo for observations should not be used in create path
-  expect(clientObservationRepoMock.create).not.toHaveBeenCalled();
-  expect(clientObservationRepoMock.remove).not.toHaveBeenCalled();
+      // repo for observations should not be used in create path
+      expect(clientObservationRepoMock.create).not.toHaveBeenCalled();
+      expect(clientObservationRepoMock.remove).not.toHaveBeenCalled();
       expect(clientRepoMock.create).toHaveBeenCalled();
       expect(clientRepoMock.save).toHaveBeenCalledWith(created);
       expect(result).toEqual({ ...created, id: 10 });
@@ -265,12 +280,12 @@ describe('ClientService', () => {
       clientRepoMock.findOne!.mockResolvedValue(client);
       clientRepoMock.softRemove!.mockResolvedValue(client);
       const res = await service.delete(client.id);
-  expect(clientRepoMock.findOne).toHaveBeenCalledWith(expect.objectContaining({ where: { id: client.id } }));
+      expect(clientRepoMock.findOne).toHaveBeenCalledWith(expect.objectContaining({ where: { id: client.id } }));
       expect(clientRepoMock.softRemove).toHaveBeenCalledWith(client);
       expect(res).toEqual({ message: `Client with ID ${client.id} deleted successfully` });
     });
     it('throws NotFoundException when client does not exist', async () => {
-  clientRepoMock.findOne!.mockResolvedValue(null);
+      clientRepoMock.findOne!.mockResolvedValue(null);
       await expect(service.delete(999)).rejects.toThrow(NotFoundException);
       expect(clientRepoMock.softRemove).not.toHaveBeenCalled();
     });
@@ -284,10 +299,12 @@ describe('ClientService', () => {
 
   describe('update', () => {
     it('updates basic fields, resolves deps, updates observations efficiently, and saves', async () => {
-      const existing: any = { id: 1, name: 'Old', observations: [
-        { summary: 'old1', comment: 'c1', date: new Date('2020-01-01') },
-        { summary: 'stay', comment: 'old', date: new Date('2020-02-02') },
-      ]};
+      const existing: any = {
+        id: 1, name: 'Old', observations: [
+          { summary: 'old1', comment: 'c1', date: new Date('2020-01-01') },
+          { summary: 'stay', comment: 'old', date: new Date('2020-02-02') },
+        ]
+      };
       const dto: any = {
         name: 'New', genderId: 1, bloodTypeId: 2, clientGoalId: 7,
         clientObservations: [
@@ -303,18 +320,19 @@ describe('ClientService', () => {
       const spyUpdateObs = jest
         .spyOn(service as any, 'updateClientObservationsEfficiently')
         .mockResolvedValue(undefined);
-  // save returns a persisted object we can assert on
-  const persisted = { ...existing, name: 'New', gender: { id: 1 }, bloodType: { id: 2 }, clientGoal: { id: 7 } };
-  clientRepoMock.save!.mockResolvedValue(persisted);
+      // save returns a persisted object we can assert on
+      const persisted = { ...existing, name: 'New', gender: { id: 1 }, bloodType: { id: 2 }, clientGoal: { id: 7 } };
+      clientRepoMock.save!.mockResolvedValue(persisted);
 
       const saved = await service.update(existing.id, dto);
-      // private method was invoked with proper args
+      // El helper privado fue invocado con los argumentos correctos
       expect(spyUpdateObs).toHaveBeenCalledWith(existing, dto.clientObservations);
-  // saved with updated fields and returns persisted
-  expect(clientRepoMock.save).toHaveBeenCalledWith(expect.objectContaining({ name: 'New' }));
-  expect(saved).toBe(persisted);
-  expect(saved).toMatchObject({ name: 'New', gender: { id: 1 }, bloodType: { id: 2 }, clientGoal: { id: 7 } });
+      // Guardado con campos actualizados y devuelve el persistido
+      expect(clientRepoMock.save).toHaveBeenCalledWith(expect.objectContaining({ name: 'New' }));
+      expect(saved).toBe(persisted);
+      expect(saved).toMatchObject({ name: 'New', gender: { id: 1 }, bloodType: { id: 2 }, clientGoal: { id: 7 } });
       // since internals are mocked, do not assert on observations mutation here
+      // Como los internals están mockeados, no afirmamos cambios en observations aquí
     });
 
     it('clears observations when none provided and saves', async () => {
@@ -376,10 +394,12 @@ describe('ClientService', () => {
 
   describe('updateClientObservationsEfficiently (isolated)', () => {
     it('removes missing, updates existing, creates new observations', async () => {
-      const client: any = { observations: [
-        { summary: 'old1', comment: 'c1', date: new Date('2020-01-01') },
-        { summary: 'stay', comment: 'old', date: new Date('2020-02-02') },
-      ] };
+      const client: any = {
+        observations: [
+          { summary: 'old1', comment: 'c1', date: new Date('2020-01-01') },
+          { summary: 'stay', comment: 'old', date: new Date('2020-02-02') },
+        ]
+      };
       const newObs: any[] = [
         { summary: 'stay', comment: 'new' },
         { summary: 'newOne', comment: 'c' },
@@ -392,20 +412,20 @@ describe('ClientService', () => {
       expect(clientObservationRepoMock.remove).toHaveBeenCalledWith([
         { summary: 'old1', comment: 'c1', date: new Date('2020-01-01') },
       ]);
-      // created newOne
+      // Crea 'newOne' cuando no existe en las actuales
       expect(clientObservationRepoMock.create).toHaveBeenCalledWith({ summary: 'newOne', comment: 'c', date: expect.any(Date) });
-      // updated 'stay'
+      // Actualiza 'stay' si ya existe
       const stay = client.observations.find((o: any) => o.summary === 'stay');
       expect(stay.comment).toBe('new');
       expect(stay.date).toEqual(expect.any(Date));
-      // final set contains stay + newOne
+      // El set final contiene stay + newOne
       const summaries = client.observations.map((o: any) => o.summary).sort();
       expect(summaries).toEqual(['newOne', 'stay']);
     });
 
     it('propagates repository remove error', async () => {
-      const client: any = { observations: [ { summary: 'old1' } ] };
-      const newObs: any[] = [ { summary: 'stay' } ];
+      const client: any = { observations: [{ summary: 'old1' }] };
+      const newObs: any[] = [{ summary: 'stay' }];
       clientObservationRepoMock.remove!.mockRejectedValue(new Error('DB remove error'));
       await expect((service as any).updateClientObservationsEfficiently(client, newObs)).rejects.toThrow('DB remove error');
     });

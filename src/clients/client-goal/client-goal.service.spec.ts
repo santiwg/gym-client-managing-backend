@@ -1,3 +1,8 @@
+// ClientGoalService unit tests
+//
+// What to know:
+// - We mock the TypeORM repository to cover CRUD flows deterministically.
+// - Error paths: findById -> NotFound when null; create/save propagates DB errors.
 import { Test } from '@nestjs/testing';
 import { ClientGoalController } from './client-goal.controller';
 import { ClientGoal } from './client-goal.entity';
