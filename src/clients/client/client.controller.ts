@@ -31,7 +31,7 @@ export class ClientController {
 
 	@Post()
 	async create(@Body() dto: ClientDto): Promise<Client> {
-		return this.clientService.create(dto);
+		return await this.clientService.create(dto);
 	}
 
 	@Put(':id')

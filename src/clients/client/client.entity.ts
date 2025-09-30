@@ -5,6 +5,7 @@ import { Subscription } from '../subscription/subscription.entity';
 import { ClientObservation } from '../client-observation/observation.entity';
 import { ClientGoal } from '../client-goal/client-goal.entity';
 import { Exclude } from "class-transformer";
+import { dateOnlyTransformer } from '../../shared/transformers/date-only.transformer';
 
 @Entity('clients')
 export class Client extends BaseEntity {
@@ -20,7 +21,8 @@ export class Client extends BaseEntity {
 	@ManyToOne(() => Gender, gender => gender.clients)
 	gender: Gender;
 
-	@Column({ type: 'date' })
+	// Persist as DATE without timezone; avoids off-by-one due to TZ shifts
+	@Column({ type: 'date', transformer: dateOnlyTransformer })
 	birthDate: Date;
 
 	@ManyToOne(() => BloodType, bloodType => bloodType.clients)
@@ -38,8 +40,8 @@ export class Client extends BaseEntity {
 	@Column({ nullable: true })
 	address: string;
 
-	//podría sacarse porque ya tenemos la fecha en la suscripción
-	@Column({ type: 'date', default: () => 'CURRENT_DATE' })
+	// Could be removed since subscription also has date, but if kept, ensure date-only semantics
+	@Column({ type: 'date', default: () => 'CURRENT_DATE', transformer: dateOnlyTransformer })
 	registrationDate: Date;
 
 	@OneToMany(() => Subscription, subscription => subscription.client, { cascade: true })

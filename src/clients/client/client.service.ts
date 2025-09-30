@@ -78,6 +78,7 @@ export class ClientService {
 
 	async create(dto: ClientDto): Promise<Client> {
 		//VER COMO HACEMOS LO DE CLIENTOBSERVATION
+		
 		const { genderId, clientGoalId, bloodTypeId, clientObservations, ...data } = dto;
 		const gender = await this.genderService.findById(genderId)
 		const observations = this.createClientObservations(clientObservations || [])
