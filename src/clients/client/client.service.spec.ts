@@ -103,14 +103,16 @@ describe('ClientService', () => {
       paginationServiceMock.createPaginatedResponse.mockReturnValue({ data, hasMore: true });
 
       const result = await service.findAllPaginated(pagination);
-      // Validamos parcialmente: order y relations. Si el servicio agrega más opciones, el test no se rompe.
-      expect(paginationServiceMock.getPaginationOptions).toHaveBeenCalledWith(
-        pagination,
-        expect.objectContaining({
-          order: { name: 'ASC' },
-          relations: ['subscriptions', 'observations', 'clientGoal', 'gender', 'bloodType'],
-        })
-      );
+      expect(paginationServiceMock.getPaginationOptions).toHaveBeenCalledWith(pagination, expect.objectContaining({
+        order: { name: 'ASC' },
+        relations: [
+          'subscriptions',
+          'observations',
+          'clientGoal',
+          'gender',
+          'bloodType',
+        ],
+      }));
       expect(clientRepoMock.findAndCount).toHaveBeenCalledWith(options);
       expect(paginationServiceMock.createPaginatedResponse).toHaveBeenCalledWith(data, 1, pagination);
       expect(result).toEqual({ data, hasMore: true });
@@ -177,7 +179,8 @@ describe('ClientService', () => {
 
   describe('create', () => {
     it('creates a client without clientGoalId', async () => {
-      const dto: any = { name: 'John', genderId: 1, bloodTypeId: 2, clientObservations: [{ summary: 's', comment: 'c' }, { summary: 'a', comment: 'c' }] };
+      const birthDate = new Date('1990-01-01');
+      const dto: any = { name: 'John', genderId: 1, bloodTypeId: 2, birthDate, clientObservations: [{ summary: 's', comment: 'c' }, { summary: 'a', comment: 'c' }] };
       const gender = { id: 1 } as any;
       const bloodType = { id: 2 } as any;
       const observations = [{ summary: 's', comment: 'c' }, { summary: 'a', comment: 'c' }];
@@ -186,7 +189,7 @@ describe('ClientService', () => {
       // isolate: mock createClientObservations
       const spyCreateObs = jest.spyOn(service, 'createClientObservations').mockReturnValue(observations as any);
 
-  // createClientObservations es pura, ejercemos la llamada a través del service
+      // createClientObservations is a pure helper; we invoke it via the service (not directly).
       const created = { ...dto, gender, clientGoal: undefined, observations, bloodType } as any;
       clientRepoMock.create!.mockReturnValue(created);
       clientRepoMock.save!.mockResolvedValue({ ...created, id: 10 });
@@ -195,17 +198,20 @@ describe('ClientService', () => {
       expect(spyCreateObs).toHaveBeenCalledWith(dto.clientObservations);
       expect(genderServiceMock.findById).toHaveBeenCalledWith(dto.genderId);
       expect(bloodTypeServiceMock.findById).toHaveBeenCalledWith(dto.bloodTypeId);
-      expect(clientGoalServiceMock.findById).not.toHaveBeenCalled();
+  expect(clientGoalServiceMock.findById).not.toHaveBeenCalled();
+  expect(clientRepoMock.create).toHaveBeenCalledWith(expect.objectContaining({ birthDate }));
       // repo for observations should not be used in create path
       expect(clientObservationRepoMock.create).not.toHaveBeenCalled();
       expect(clientObservationRepoMock.remove).not.toHaveBeenCalled();
       expect(clientRepoMock.create).toHaveBeenCalled();
       expect(clientRepoMock.save).toHaveBeenCalledWith(created);
       expect(result).toEqual({ ...created, id: 10 });
+      expect(result.birthDate).toEqual(birthDate);
     });
 
     it('creates a client with clientGoalId', async () => {
-      const dto: any = { name: 'Jane', genderId: 1, bloodTypeId: 2, clientGoalId: 7 };
+      const birthDate = new Date('1992-02-02');
+      const dto: any = { name: 'Jane', genderId: 1, bloodTypeId: 2, clientGoalId: 7, birthDate };
       const gender = { id: 1 } as any;
       const bloodType = { id: 2 } as any;
       const clientGoal = { id: 7 } as any;
@@ -218,7 +224,9 @@ describe('ClientService', () => {
 
       const result = await service.create(dto);
       expect(clientGoalServiceMock.findById).toHaveBeenCalledWith(dto.clientGoalId);
+      expect(clientRepoMock.create).toHaveBeenCalledWith(expect.objectContaining({ birthDate }));
       expect(result.id).toBe(11);
+      expect(result.birthDate).toEqual(birthDate);
     });
 
     it('propagates when genderService.findById throws', async () => {
@@ -412,13 +420,13 @@ describe('ClientService', () => {
       expect(clientObservationRepoMock.remove).toHaveBeenCalledWith([
         { summary: 'old1', comment: 'c1', date: new Date('2020-01-01') },
       ]);
-      // Crea 'newOne' cuando no existe en las actuales
+      // created newOne
       expect(clientObservationRepoMock.create).toHaveBeenCalledWith({ summary: 'newOne', comment: 'c', date: expect.any(Date) });
-      // Actualiza 'stay' si ya existe
+      // updated 'stay'
       const stay = client.observations.find((o: any) => o.summary === 'stay');
       expect(stay.comment).toBe('new');
       expect(stay.date).toEqual(expect.any(Date));
-      // El set final contiene stay + newOne
+      // final set contains stay + newOne
       const summaries = client.observations.map((o: any) => o.summary).sort();
       expect(summaries).toEqual(['newOne', 'stay']);
     });

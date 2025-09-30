@@ -137,6 +137,7 @@ describe('UsersService', () => {
 
 			const res = await service.login({ email: 'john@example.com', password: 'secret' });
 			expect(spy).toHaveBeenCalledWith('john@example.com');
+			// toHaveBeenNthCalledWith(n, ...): assert the exact arguments passed on the nth call to this mock (here: the 1st call)
 			expect(jwtServiceMock.generateToken).toHaveBeenNthCalledWith(1, { email: user.email }, 'auth');
 			expect(jwtServiceMock.generateToken).toHaveBeenNthCalledWith(2, { email: user.email }, 'refresh');
 			expect(res).toEqual({ accessToken: 'accessToken', refreshToken: 'refreshToken' });
