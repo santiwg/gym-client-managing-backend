@@ -24,6 +24,7 @@ import { INestApplication, INestApplicationContext, NotFoundException } from '@n
 import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import 'dotenv/config'; // loads .env.test
+import { Client as PgClient } from 'pg';
 import { ClientsModule } from '../clients.module';
 import { ClientController } from './client.controller';
 import { Client } from './client.entity';
@@ -44,6 +45,9 @@ describe('ClientsModule integration', () => {
     let moduleRef: TestingModule;
     let app: INestApplicationContext; //lighter than INestApplication, no HTTP server
     let dataSource: DataSource;
+    // Use an isolated Postgres schema for this suite to avoid conflicts with E2E
+    // and other test files running in parallel.
+    let dbSchema: string;
 
     // We call controller methods directly to test module wiring (controller->service->repo->DB)
     let controller: ClientController;
@@ -67,20 +71,35 @@ describe('ClientsModule integration', () => {
     jest.setTimeout(30000); // integration boot + DB may take longer than 5s
 
 
+    // Create schema if missing (safe to call repeatedly). This avoids races when
+    // multiple Jest workers initialize TypeORM and the DB concurrently.
+    const ensureSchema = async (schema: string) => {
+        const url = process.env.TEST_DATABASE_URL || 'postgres://postgres:postgres@127.0.0.1:5433/gym_test';
+        const client = new PgClient({ connectionString: url });
+        await client.connect();
+        await client.query(`CREATE SCHEMA IF NOT EXISTS "${schema}";`);
+        await client.end();
+    };
+
     beforeAll(async () => {
+        // Derive a unique schema for this integration spec
+        dbSchema = `int_${process.env.JEST_WORKER_ID || '1'}`;
+        await ensureSchema(dbSchema);
         moduleRef = await Test.createTestingModule({
             imports: [
                 // Real DB for tests: in-memory SQLite (fast, isolated)
                 TypeOrmModule.forRoot({
                     type: 'postgres',
                     url: process.env.TEST_DATABASE_URL || 'postgres://postgres:postgres@127.0.0.1:5433/gym_test',
+                    // Isolate from other specs (especially E2E) by schema
+                    schema: dbSchema,
                     ssl: false,
                     autoLoadEntities: true, // auto-register entities used by imported modules
                     synchronize: true,      // build schema for tests
                     dropSchema: true,       // drop on every connection start
                     logging: false,
-                    retryAttempts: 5,
-                    retryDelay: 1000,
+                    // Fail fast to avoid long timeouts if DB is not reachable
+                    retryAttempts: 0,
                 }),
                 ClientsModule, // import the real feature module
             ],
@@ -111,6 +130,12 @@ describe('ClientsModule integration', () => {
     afterAll(async () => {
         // Proper teardown avoids Jest open handle leaks
         if (dataSource?.isInitialized) {
+            // Optional: drop the isolated schema to leave DB clean
+            try {
+                await dataSource.query(`DROP SCHEMA IF EXISTS "${dbSchema}" CASCADE;`);
+            } catch (_) {
+                // ignore cleanup errors
+            }
             await dataSource.destroy();
         }
         await moduleRef.close();
@@ -120,8 +145,14 @@ describe('ClientsModule integration', () => {
     const clearDatabase = async () => {
         if ((dataSource.options as any).type === 'postgres') {
             // Truncate all tables known by TypeORM with CASCADE and reset IDs
+            // Important: when a schema is used, Postgres requires quoting schema and table separately: "schema"."table"
             const tables = dataSource.entityMetadatas
-                .map((m) => `"${m.tablePath}"`) // includes schema if applicable
+                .map((m: any) => {
+                    // Prefer metadata fields if available; fallback to splitting tablePath
+                    const schema = m.schema || (typeof m.tablePath === 'string' && m.tablePath.includes('.') ? m.tablePath.split('.')[0] : undefined);
+                    const table = m.tableName || (typeof m.tablePath === 'string' ? m.tablePath.split('.').slice(-1)[0] : undefined);
+                    return schema ? `"${schema}"."${table}"` : `"${table}"`;
+                })
                 .join(', ');
             if (tables.length > 0) {
                 await dataSource.query(`TRUNCATE TABLE ${tables} RESTART IDENTITY CASCADE;`);
