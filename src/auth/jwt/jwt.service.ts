@@ -42,6 +42,9 @@ export class JwtService {
     }
   }
 
+  // getPayload: decodifica/verifica el token JWT usando el secreto correspondiente
+  // al tipo (auth o refresh). Si la firma/expiración son inválidas jsonwebtoken
+  // lanzará un error y se propagará (capturado externamente donde corresponda).
   getPayload(token: string, type: 'refresh' | 'auth' = 'auth'): Payload {
     return verify(token, this.config[type].secret) as Payload;
   }
